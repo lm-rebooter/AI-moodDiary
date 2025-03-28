@@ -1,0 +1,158 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #F5F5F5;
+
+  .navbar {
+    height: 44px;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #F5F5F5;
+
+    :global(.adm-nav-bar-title) {
+      font-size: 18px;
+      font-weight: 500;
+      color: #333333;
+    }
+
+    .bellIcon {
+      font-size: 24px;
+      color: #666666;
+    }
+  }
+
+  .scrollContent {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .moodCard {
+    background-color: #F8F8FF;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+
+    .moodTitle {
+      font-size: 16px;
+      font-weight: 500;
+      color: #333333;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .moodContent {
+      padding: 16px;
+
+      .moodHeader {
+        margin-bottom: 12px;
+
+        .emoji {
+          font-size: 24px;
+          line-height: 1;
+        }
+
+        .timeInfo {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .time {
+            font-size: 14px;
+            color: #999999;
+          }
+
+          .type {
+            font-size: 14px;
+            color: #4E6EF2;
+            background-color: rgba(78, 110, 242, 0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+          }
+        }
+      }
+
+      .moodText {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #333333;
+      }
+    }
+
+    .moodEmpty {
+      padding: 32px 16px;
+      text-align: center;
+      color: #999999;
+      font-size: 15px;
+    }
+  }
+
+  .sectionHeader {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 0 4px;
+
+    .sectionTitle {
+      font-size: 16px;
+      font-weight: 500;
+      color: #333333;
+    }
+
+    .sectionSubtitle {
+      margin-left: 8px;
+      font-size: 14px;
+      color: #999999;
+    }
+  }
+
+  .trendCard {
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .aiCard {
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    .aiContent {
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      .aiIcon {
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .aiMessage {
+        flex: 1;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #333333;
+      }
+    }
+  }
+}
+
+:global(.adm-tab-bar) {
+  height: 56px;
+  background-color: #FFFFFF;
+  border-top: 1px solid #F5F5F5;
+
+  :global(.adm-tab-bar-item) {
+    color: #999999;
+    font-size: 12px;
+
+    &:global(.adm-tab-bar-item-active) {
+      color: #4E6EF2;
+    }
+  }
+} 

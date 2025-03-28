@@ -1,0 +1,258 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #F8F9FA;
+
+  .navbar {
+    height: 44px;
+    background-color: transparent;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+
+    :global(.adm-nav-bar-title) {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333333;
+    }
+
+    .settingsIcon {
+      font-size: 24px;
+      color: #666666;
+      transition: transform 0.3s ease;
+
+      &:active {
+        transform: scale(0.9);
+      }
+    }
+  }
+
+  .content {
+    flex: 1;
+    padding: 44px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .userCard {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #FFFFFF;
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.05),
+      0 8px 32px rgba(78, 110, 242, 0.05);
+    
+    .userCardBg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(135deg, #4E6EF2, #6E89FF);
+      opacity: 0.8;
+    }
+
+    .userCardContent {
+      position: relative;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 40px;
+      border: 4px solid #FFFFFF;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      object-fit: cover;
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
+    .avatarFallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #4E6EF2, #6E89FF);
+      color: #FFFFFF;
+      font-size: 32px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .userInfo {
+      flex: 1;
+
+      .name {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333333;
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+      }
+
+      .stats {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        margin-bottom: 6px;
+
+        .daysCount {
+          font-size: 28px;
+          font-weight: 600;
+          color: #4E6EF2;
+          font-feature-settings: "tnum";
+          text-shadow: 0 2px 4px rgba(78, 110, 242, 0.1);
+        }
+
+        .daysLabel {
+          font-size: 16px;
+          color: #4E6EF2;
+          margin-right: 4px;
+        }
+
+        .statsText {
+          font-size: 14px;
+          color: #666666;
+        }
+      }
+
+      .startDate {
+        font-size: 12px;
+        color: #999999;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        
+        &::before {
+          content: '';
+          display: inline-block;
+          width: 4px;
+          height: 4px;
+          border-radius: 2px;
+          background-color: #CCCCCC;
+        }
+      }
+    }
+  }
+
+  .menuGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 4px;
+
+    .menuItem {
+      padding: 20px;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      &:active {
+        transform: scale(0.98);
+
+        &::before {
+          opacity: 1;
+        }
+      }
+
+      .menuIcon {
+        position: relative;
+        font-size: 28px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .menuBadge {
+          position: absolute;
+          top: -4px;
+          right: -8px;
+          
+          :global(.adm-badge-content) {
+            padding: 0 6px;
+            font-size: 12px;
+            background: #FF4D4F;
+            border: 2px solid #FFFFFF;
+          }
+        }
+      }
+
+      .menuTitle {
+        font-size: 16px;
+        font-weight: 500;
+        color: #333333;
+      }
+    }
+  }
+
+  .achievementCard {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+
+    .achievementTitle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+
+      span {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333333;
+      }
+
+      .achievementMore {
+        font-size: 14px;
+        color: #4E6EF2;
+        font-weight: normal;
+      }
+    }
+
+    .achievementList {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 4px;
+      -webkit-overflow-scrolling: touch;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+  }
+} 
