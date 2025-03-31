@@ -15,7 +15,7 @@ const MainLayout = () => {
 
   const tabs = [
     {
-      key: '/',
+      key: '/home',
       title: '首页',
       icon: <AppOutline />,
     },
@@ -41,11 +41,21 @@ const MainLayout = () => {
       <div className={styles.content}>
         <Outlet />
       </div>
-      <TabBar activeKey={pathname} onChange={(value) => navigate(value)}>
-        {tabs.map(item => (
-          <TabBar.Item key={item.key} icon={item.icon} title={item.title} />
-        ))}
-      </TabBar>
+
+      <div className={styles.tabBarWrapper}>
+        <TabBar 
+          activeKey={pathname} 
+          onChange={value => navigate(value)}
+        >
+          {tabs.map(item => (
+            <TabBar.Item 
+              key={item.key} 
+              icon={item.icon} 
+              title={item.title}
+            />
+          ))}
+        </TabBar>
+      </div>
     </div>
   );
 };

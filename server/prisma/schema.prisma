@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  name          String?
+  password      String
+  avatar        String?   // 头像URL
+  refreshToken  String?   // 刷新令牌
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  diaries       Diary[]
+  emotions      Emotion[]
+  settings      UserSettings?
+  statistics    Statistics[]
+}
+
+// 用户设置
+model UserSettings {
+  id                Int      @id @default(autoincrement())
+  userId           Int      @unique
+  user             User     @relation(fields: [userId], references: [id])
+  reminderEnabled  Boolean  @default(false)  // 提醒功能开关
+  reminderTime     String?  // 提醒时间
+  privacyLevel     Int      @default(0)      // 隐私级别：0-公开，1-仅自己可见
+  theme            String   @default("light") // 主题设置
+  language         String   @default("zh-CN") // 语言设置
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// 日记模型
+model Diary {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  content     String    // 日记内容
+  weather     String?   // 天气
+  location    String?   // 位置
+  imageUrls   String    // 图片URL，以逗号分隔
+  tags        String    // 标签，以逗号分隔
+  Analysis  String?   // AI 分析结果
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  emotions    Emotion[]
+}
+
+// 情绪模型
+model Emotion {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  diaryId     Int
+  diary       Diary    @relation(fields: [diaryId], references: [id])
+  type        String   // 情绪类型：积极、消极等
+  intensity   Int      // 情绪强度：1-100
+  tags        String   // 情绪标签，以逗号分隔
+  createdAt   DateTime @default(now())
+}
+
+// 统计数据
+model Statistics {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id])
+  date            DateTime // 统计日期
+  emotionSummary  String   // 情绪汇总数据，JSON字符串
+  activityLevel   Int      // 活跃度
+  streakDays      Int      // 连续记录天数
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+// AI 建议记录
+model AIRecommendation {
+  id          Int      @id @default(autoincrement())
+  content     String   // 建议内容
+  type        String   // 建议类型
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

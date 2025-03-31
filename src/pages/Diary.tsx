@@ -1,7 +1,9 @@
+import { Input, message, Upload } from 'antd';
 import { TextArea, Button, NavBar, Toast } from 'antd-mobile';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Diary.module.less';
+import { diaryApi } from '../services/api';
 
 const EMOTIONS = [
   { emoji: '😊', name: '开心' },
@@ -11,9 +13,17 @@ const EMOTIONS = [
   { emoji: '🤔', name: '思考' }
 ];
 
+
+interface CreateDiaryDTO {
+  content: string;
+  emotions: { type: string; intensity: number; tags: string[] }[];
+}
+
+
 const Diary = () => {
-  const navigate = useNavigate();
   const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const [selectedEmotion, setSelectedEmotion] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,6 +78,29 @@ const Diary = () => {
     }
   }, [content, selectedEmotion, navigate]);
 
+
+  const handleSave = async () => {
+    if (!content.trim()) {
+      message.warning('请输入日记内容');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await diaryApi.create({
+        content,
+        emotions: [{ type: '平静', intensity: 3, tags: [] }]
+      });
+      message.success('保存成功');
+      setContent('');
+    } catch (error: any) {
+      message.error(error.message || '保存失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ 
   return (
     <div className={styles.pageContainer}>
       <NavBar

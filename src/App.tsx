@@ -1,28 +1,41 @@
+import React from 'react';
+// import { RouterProvider } from 'react-router-dom';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import { App as AntdApp } from 'antd';
 import { ConfigProvider } from 'antd-mobile';
+
 import zhCN from 'antd-mobile/es/locales/zh-CN';
+import routes from './router';
 
-import MainLayout from './layouts/MainLayout';
-import Home from './pages/Home';
-import Diary from './pages/Diary';
-import Analysis from './pages/Analysis';
-import Profile from './pages/Profile';
+console.log(routes);
+import './App.css';
 
-function App() {
-  return (
-    <ConfigProvider locale={zhCN}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Home />} />
-            <Route path="diary" element={<Diary />} />
-            <Route path="analysis" element={<Analysis />} />
-            <Route path="profile" element={<Profile />} />
+const App: React.FC = () => {
+  const renderRoutes = (routes: any[]) => {
+    return routes.map((route) => {
+      if (route.children) {
+        return (
+          <Route key={route.path} path={route.path} element={route.element}>
+            {renderRoutes(route.children)}
           </Route>
-        </Routes>
-      </Router>
-    </ConfigProvider>
+        );
+      }
+      return <Route key={route.path} path={route.path} element={route.element} />;
+    });
+  };
+
+  return (
+    <AntdApp>
+      <ConfigProvider locale={zhCN}>
+        <Router>
+          <Routes>
+            {renderRoutes(routes)}
+          </Routes>
+        </Router>
+      </ConfigProvider>
+    </AntdApp>
   );
-}
+};
 
 export default App;
