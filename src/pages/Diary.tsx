@@ -3,29 +3,21 @@ import { TextArea, Button, NavBar, Toast } from 'antd-mobile';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Diary.module.less';
-import { diaryApi } from '../services/api';
+import { moodService } from '../services/moodService';
 
 const EMOTIONS = [
-  { emoji: '😊', name: '开心' },
-  { emoji: '😢', name: '难过' },
-  { emoji: '😡', name: '生气' },
-  { emoji: '😌', name: '放松' },
-  { emoji: '🤔', name: '思考' }
+  { emoji: '😊', name: '开心', value: 90 },
+  { emoji: '😌', name: '放松', value: 75 },
+  { emoji: '🤔', name: '思考', value: 60 },
+  { emoji: '😢', name: '难过', value: 30 },
+  { emoji: '😡', name: '生气', value: 10 }
 ];
-
-
-interface CreateDiaryDTO {
-  content: string;
-  emotions: { type: string; intensity: number; tags: string[] }[];
-}
-
 
 const Diary = () => {
   const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const [selectedEmotion, setSelectedEmotion] = useState('');
+  const [selectedEmotion, setSelectedEmotion] = useState<typeof EMOTIONS[0] | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = useCallback(async () => {
     if (!selectedEmotion) {
@@ -45,21 +37,14 @@ const Diary = () => {
     setSubmitting(true);
 
     try {
-      // 模拟提交接口
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // 模拟保存数据到本地存储
-      const newDiary = {
+      await moodService.createDiary({
         content: content.trim(),
-        emotion: selectedEmotion,
-        time: new Date().toLocaleTimeString('zh-CN', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }),
-        type: '新增'
-      };
-      
-      localStorage.setItem('latestDiary', JSON.stringify(newDiary));
+        emotion: {
+          type: selectedEmotion.name,
+          intensity: selectedEmotion.value,
+          tags: []
+        }
+      });
 
       Toast.show({
         icon: 'success',
@@ -78,29 +63,6 @@ const Diary = () => {
     }
   }, [content, selectedEmotion, navigate]);
 
-
-  const handleSave = async () => {
-    if (!content.trim()) {
-      message.warning('请输入日记内容');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await diaryApi.create({
-        content,
-        emotions: [{ type: '平静', intensity: 3, tags: [] }]
-      });
-      message.success('保存成功');
-      setContent('');
-    } catch (error: any) {
-      message.error(error.message || '保存失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
- 
   return (
     <div className={styles.pageContainer}>
       <NavBar
@@ -114,7 +76,7 @@ const Diary = () => {
             保存
           </Button>
         }
-        back={null}
+        onBack={() => navigate(-1)}
       >
         写日记
       </NavBar>
@@ -126,6 +88,9 @@ const Diary = () => {
             value={content}
             onChange={setContent}
             className={styles.textarea}
+            rows={6}
+            maxLength={500}
+            showCount
           />
         </div>
 
@@ -136,11 +101,12 @@ const Diary = () => {
               <div
                 key={emotion.emoji}
                 className={`${styles.emotionItem} ${
-                  selectedEmotion === emotion.emoji ? styles.selected : ''
+                  selectedEmotion?.emoji === emotion.emoji ? styles.selected : ''
                 }`}
-                onClick={() => setSelectedEmotion(emotion.emoji)}
+                onClick={() => setSelectedEmotion(emotion)}
               >
                 <span className={styles.emoji}>{emotion.emoji}</span>
+                {/* <span className={styles.emotionName}>{emotion.name}</span> */}
               </div>
             ))}
           </div>

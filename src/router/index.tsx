@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import DiaryPage from '../pages/Diary';
 import Home from '../pages/Home';
 import { StatisticsPage } from '../pages/Statistics';
-import  AIAnalysisPage  from '../pages/Analysis';
+import AIAnalysisPage from '../pages/Analysis';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import MainLayout from '../layouts/MainLayout';
@@ -29,23 +29,23 @@ const routes = [
       },
       {
         path: '/home',
-        element: <Home />
+        element: <PrivateRoute><Home /></PrivateRoute>
       },
       {
         path: '/diary',
-        element: <DiaryPage />
+        element: <PrivateRoute><DiaryPage /></PrivateRoute>
       },
       {
         path: '/statistics',
-        element: <StatisticsPage />
+        element: <PrivateRoute><StatisticsPage /></PrivateRoute>
       },
       {
         path: '/analysis',
-        element: <AIAnalysisPage />
+        element: <PrivateRoute><AIAnalysisPage /></PrivateRoute>
       },
       {
         path: '/profile',
-        element: <Profile />
+        element: <PrivateRoute><Profile /></PrivateRoute>
       }
     ]
   }

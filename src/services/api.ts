@@ -1,40 +1,10 @@
 import axios, { AxiosResponse } from 'axios';
+import request from '../utils/request';
 
 const baseURL = 'http://localhost:3000/api';
 
-const api = axios.create({
-  baseURL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-// 请求拦截器
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// 响应拦截器
-api.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error.response?.data || error);
-  }
-);
+// 移除重复的 axios 实例创建，直接使用 request
+const api = request;
 
 interface CreateDiaryDTO {
   content: string;
@@ -61,36 +31,60 @@ export const diaryApi = {
   getAIAnalysis: (id: number) => api.get(`/diaries/${id}/analysis`)
 };
 
-interface AuthResponse {
+export interface LoginParams {
+  username: string;
+  password: string;
+}
+
+export interface RegisterParams extends LoginParams {
+  email: string;
+}
+
+export interface AuthResponse {
   token: string;
   user: {
     id: number;
+    username: string;
     email: string;
-    name?: string;
   };
 }
 
-// 用户相关 API
-export const userApi = {
-  register: async (data: { email: string; password: string; name?: string }) => {
-    const response = await api.post('/auth/register', data);
-    return response as AuthResponse;
+export const authService = {
+  login: async (data: LoginParams): Promise<AuthResponse> => {
+    const response = await request.post('/auth/login', data);
+    const { token, user } = response.data;
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    return response.data;
   },
-  login: async (credentials: { email: string; password: string }) => {
-    try {
-      const data = await api.post('/auth/login', credentials) as AuthResponse;
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      return data;
-    } catch (error) {
-      console.error('登录失败:', error);
-      throw error;
-    }
+
+  register: async (data: RegisterParams): Promise<AuthResponse> => {
+    const response = await request.post('/auth/register', data);
+    return response.data;
   },
+
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/login';
+  }
+};
+
+export const isAuthenticated = (): boolean => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+
+    // 检查用户信息是否存在
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      localStorage.removeItem('token');
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('认证状态检查失败:', error);
+    return false;
   }
 };
 
@@ -114,9 +108,4 @@ export const todoApi = {
 export const getCurrentUser = () => {
   const userStr = localStorage.getItem('user');
   return userStr ? JSON.parse(userStr) : null;
-};
-
-// 检查是否已登录
-export const isAuthenticated = () => {
-  return !!localStorage.getItem('token');
 }; 

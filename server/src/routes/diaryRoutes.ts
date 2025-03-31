@@ -5,6 +5,15 @@ import { authenticateToken } from '../middleware/auth';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// 情绪表情映射
+const EMOTION_EMOJI_MAP: Record<string, string> = {
+  '开心': '😊',
+  '放松': '😌',
+  '思考': '🤔',
+  '难过': '😢',
+  '生气': '😡'
+};
+
 interface DiaryRequest extends Request {
   user?: {
     userId: number;
@@ -62,19 +71,8 @@ router.get('/today', authenticateToken, async (req: DiaryRequest, res: Response)
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    console.log('查询时间范围:', { today, tomorrow });
-
-    // 先查询用户是否存在
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      console.log('用户不存在:', userId);
-      return res.status(401).json({ error: '用户不存在' });
-    }
-
-    const todayDiary = await prisma.diary.findFirst({
+    // 查询今天的所有日记
+    const todayDiaries = await prisma.diary.findMany({
       where: {
         userId,
         createdAt: {
@@ -94,12 +92,10 @@ router.get('/today', authenticateToken, async (req: DiaryRequest, res: Response)
       }
     });
 
-    console.log('查询到的日记:', todayDiary);
-
-    if (!todayDiary) {
+    if (!todayDiaries.length) {
       return res.json({
         time: '',
-        type: '',
+        type: '新增',
         content: '',
         emotion: '',
         weather: '',
@@ -109,18 +105,18 @@ router.get('/today', authenticateToken, async (req: DiaryRequest, res: Response)
       });
     }
 
-    const latestEmotion = todayDiary.emotions[0];
-    console.log('最新情绪记录:', latestEmotion);
+    const latestDiary = todayDiaries[0];
+    const latestEmotion = latestDiary.emotions[0];
 
     const response = {
-      time: todayDiary.createdAt.toLocaleTimeString(),
-      type: latestEmotion?.type || '',
-      content: todayDiary.content,
-      emotion: latestEmotion?.type || '',
-      weather: todayDiary.weather || '',
-      location: todayDiary.location || '',
-      tags: todayDiary.tags ? todayDiary.tags.split(',').filter(Boolean) : [],
-      imageUrls: todayDiary.imageUrls ? todayDiary.imageUrls.split(',').filter(Boolean) : []
+      time: latestDiary.createdAt.toLocaleTimeString(),
+      type: todayDiaries.length > 1 ? '更新' : '新增',
+      content: latestDiary.content,
+      emotion: latestEmotion?.type ? EMOTION_EMOJI_MAP[latestEmotion.type] || latestEmotion.type : '',
+      weather: latestDiary.weather || '',
+      location: latestDiary.location || '',
+      tags: latestDiary.tags ? latestDiary.tags.split(',').filter(Boolean) : [],
+      imageUrls: latestDiary.imageUrls ? latestDiary.imageUrls.split(',').filter(Boolean) : []
     };
 
     console.log('返回的响应:', response);

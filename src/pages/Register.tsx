@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, message } from 'antd';
-import { userApi } from '../services/api';
+import { Form, Input, Button, App } from 'antd';
+import { authService } from '../services/api';
 
 export const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { message } = App.useApp();
 
-  const onFinish = async (values: { email: string; password: string; name?: string }) => {
+  const onFinish = async (values: { email: string; password: string; name: string }) => {
     try {
       setLoading(true);
-      await userApi.register(values);
+      await authService.register({
+        username: values.email,
+        password: values.password,
+        email: values.email
+      });
+      
       message.success('注册成功，请登录');
       navigate('/login');
     } catch (error: any) {
-      message.error(error.error || '注册失败');
+      console.error('注册错误:', error);
+      message.error(error.response?.data?.error || '注册失败，请稍后重试');
     } finally {
       setLoading(false);
     }

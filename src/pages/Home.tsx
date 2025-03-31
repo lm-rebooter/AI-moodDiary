@@ -1,46 +1,54 @@
-import { Card, Space, NavBar } from 'antd-mobile';
+import { Card, Space, NavBar, DotLoading } from 'antd-mobile';
 import { BellOutline } from 'antd-mobile-icons';
 import ReactECharts from 'echarts-for-react';
 import { useEffect, useState } from 'react';
 import styles from './Home.module.less';
+import { moodService } from '../services/moodService';
+import type { MoodData, EmotionTrend, AISuggestion } from '../types/mood';
 
 const Home = () => {
-  // 模拟情绪数据
-  const emotionData = {
-    dates: ['3/20', '3/21', '3/22', '3/23', '3/24', '3/25', '3/26'],
-    values: [75, 68, 80, 85, 65, 72, 78],
-  };
-
-  const [currentMood, setCurrentMood] = useState({
+  const [loading, setLoading] = useState(true);
+  const [currentMood, setCurrentMood] = useState<MoodData>({
     time: '',
     type: '',
     content: '',
     emotion: '',
+    weather: '',
+    location: '',
+    tags: [],
+    imageUrls: []
+  });
+  const [emotionData, setEmotionData] = useState<EmotionTrend>({
+    dates: [],
+    values: [],
+  });
+  const [aiSuggestion, setAiSuggestion] = useState<AISuggestion>({
+    content: '',
+    type: ''
   });
 
-  useEffect(() => {
-    // 获取最新保存的日记内容
-    const latestDiary = localStorage.getItem('latestDiary');
-    if (latestDiary) {
-      setCurrentMood(JSON.parse(latestDiary));
+  const fetchHomeData = async () => {
+    try {
+      setLoading(true);
+      const [moodData, trendData, suggestionData] = await Promise.all([
+        moodService.getTodayMood(),
+        moodService.getEmotionTrend(),
+        moodService.getAISuggestion(),
+      ]);
+
+      setCurrentMood(moodData);
+      setEmotionData(trendData);
+      setAiSuggestion(suggestionData);
+    } catch (error) {
+      console.error('Failed to fetch home data:', error);
+    } finally {
+      setLoading(false);
     }
-
-    // 监听storage变化，实时更新内容
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'latestDiary' && e.newValue) {
-        setCurrentMood(JSON.parse(e.newValue));
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  const aiSuggestion = {
-    content: '今天是个适合户外活动的好天气，建议您出去散步放松一下心情。'
   };
+
+  useEffect(() => {
+    fetchHomeData();
+  }, []);
 
   const option = {
     grid: {
@@ -110,6 +118,15 @@ const Home = () => {
     ],
   };
 
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <DotLoading color='primary' />
+        <span>加载中...</span>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.pageContainer}>
       <NavBar
@@ -137,6 +154,21 @@ const Home = () => {
               <div className={styles.moodText}>
                 {currentMood.content}
               </div>
+              {currentMood.weather && (
+                <div className={styles.moodMeta}>
+                  <span>天气：{currentMood.weather}</span>
+                  {currentMood.location && (
+                    <span>地点：{currentMood.location}</span>
+                  )}
+                </div>
+              )}
+              {currentMood.tags.length > 0 && (
+                <div className={styles.moodTags}>
+                  {currentMood.tags.map((tag, index) => (
+                    <span key={index} className={styles.tag}>#{tag}</span>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className={styles.moodEmpty}>

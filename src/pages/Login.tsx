@@ -1,32 +1,47 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Form, Input, Button, App } from 'antd';
-import { userApi } from '../services/api';
+import { authService } from '../services/api';
 
 export const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { message } = App.useApp();
+
+  // 获取重定向路径
+  const redirect = searchParams.get('redirect') || '/home';
+
+  // 如果已经登录，直接重定向
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate(redirect, { replace: true });
+    }
+  }, [navigate, redirect]);
 
   const onFinish = async (values: { email: string; password: string }) => {
     try {
       setLoading(true);
-      const response = await userApi.login(values);
-      
-      console.log(response);
-      // 保存 token 到 localStorage
-      localStorage.setItem('token', response.token);
-      
-      // 保存用户信息
-      localStorage.setItem('user', JSON.stringify(response.user));
+      await authService.login({
+        username: values.email,
+        password: values.password
+      });
       
       message.success('登录成功');
-      navigate('/home');
+      // 登录成功后跳转到重定向路径
+      navigate(redirect, { replace: true });
     } catch (error: any) {
-      console.log(error);
-
       console.error('登录错误:', error);
-      message.error(error.response?.data?.error || '登录失败，请稍后重试');
+      const errorMessage = error.response?.data?.error || '登录失败，请稍后重试';
+      message.error(errorMessage);
+      
+      // 如果是token相关错误，清除本地存储
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     } finally {
       setLoading(false);
     }
