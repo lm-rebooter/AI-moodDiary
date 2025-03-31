@@ -51,25 +51,30 @@ model Diary {
   content     String    // 日记内容
   weather     String?   // 天气
   location    String?   // 位置
-  imageUrls   String    // 图片URL，以逗号分隔
-  tags        String    // 标签，以逗号分隔
-  Analysis  String?   // AI 分析结果
+  imageUrls   String?   // 图片URL，以逗号分隔
+  tags        String?   // 标签，以逗号分隔
+  aiAnalysis  String?   // AI 分析结果
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   emotions    Emotion[]
+
+  @@index([userId])
 }
 
 // 情绪模型
 model Emotion {
   id          Int      @id @default(autoincrement())
   userId      Int
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   diaryId     Int
-  diary       Diary    @relation(fields: [diaryId], references: [id])
+  diary       Diary    @relation(fields: [diaryId], references: [id], onDelete: Cascade)
   type        String   // 情绪类型：积极、消极等
   intensity   Int      // 情绪强度：1-100
-  tags        String   // 情绪标签，以逗号分隔
+  tags        String?  @default("")  // 情绪标签，以逗号分隔
   createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([diaryId])
 }
 
 // 统计数据
