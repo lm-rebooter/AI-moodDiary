@@ -1,17 +1,29 @@
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { TabBar } from 'antd-mobile';
 import {
   AppOutline,
-  ContentOutline,
-  HistogramOutline,
+  MessageOutline,
+  UnorderedListOutline,
   UserOutline,
 } from 'antd-mobile-icons';
+import { useNavigate } from 'react-router-dom';
 import styles from './MainLayout.module.less';
 
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { pathname } = location;
+
+  // 路由变化时重置滚动位置
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // 找到所有可滚动的容器并重置
+    document.querySelectorAll('.scrollContent').forEach(element => {
+      if (element instanceof HTMLElement) {
+        element.scrollTop = 0;
+      }
+    });
+  }, [location.pathname]);
 
   const tabs = [
     {
@@ -22,16 +34,16 @@ const MainLayout = () => {
     {
       key: '/diary',
       title: '写日记',
-      icon: <ContentOutline />,
+      icon: <MessageOutline />,
     },
     {
-      key: '/analysis',
-      title: 'AI分析',
-      icon: <HistogramOutline />,
+      key: '/statistics',
+      title: '统计',
+      icon: <UnorderedListOutline />,
     },
     {
       key: '/profile',
-      title: '个人中心',
+      title: '我的',
       icon: <UserOutline />,
     },
   ];
@@ -41,21 +53,16 @@ const MainLayout = () => {
       <div className={styles.content}>
         <Outlet />
       </div>
-
-      <div className={styles.tabBarWrapper}>
-        <TabBar 
-          activeKey={pathname} 
-          onChange={value => navigate(value)}
-        >
-          {tabs.map(item => (
-            <TabBar.Item 
-              key={item.key} 
-              icon={item.icon} 
-              title={item.title}
-            />
-          ))}
-        </TabBar>
-      </div>
+      <TabBar
+        className={styles.tabBar}
+        activeKey={location.pathname}
+        onChange={value => navigate(value)}
+        safeArea
+      >
+        {tabs.map(item => (
+          <TabBar.Item key={item.key} icon={item.icon} title={item.title} />
+        ))}
+      </TabBar>
     </div>
   );
 };

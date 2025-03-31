@@ -137,7 +137,7 @@ const Home = () => {
         首页
       </NavBar>
 
-      <div className={styles.scrollContent}>
+      <div className={`${styles.scrollContent} scrollContent`}>
         <div className={styles.moodCard}>
           {currentMood ? (
             <>

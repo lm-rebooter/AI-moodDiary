@@ -78,7 +78,7 @@ const Diary = () => {
         }
         onBack={() => navigate(-1)}
       >
-        写日记
+        日记
       </NavBar>
 
       <div className={styles.content}>
