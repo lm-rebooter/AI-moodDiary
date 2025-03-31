@@ -1,116 +1,209 @@
-import { NavBar, List, Avatar, Badge } from 'antd-mobile';
-import { SetOutline, StarFill, HeartOutline, SetOutline as PrivacyOutline, QuestionCircleOutline } from 'antd-mobile-icons';
+import { useEffect, useState } from 'react';
+import { NavBar, Card, Button, Toast, Dialog } from 'antd-mobile';
+import { 
+  SetOutline,
+  BellOutline,
+  GlobalOutline,
+  RightOutline,
+  UserOutline,
+  EditSOutline,
+  PictureOutline,
+  HeartOutline,
+  StarOutline
+} from 'antd-mobile-icons';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/api';
 import styles from './Profile.module.less';
 
+interface UserInfo {
+  id: number;
+  email: string;
+  name: string | null;
+  avatar: string | null;
+  settings: {
+    theme: string;
+    language: string;
+    reminderEnabled: boolean;
+  };
+  statistics: {
+    totalDays: number;      // 记录天数
+    positiveRate: number;   // 积极情绪占比
+    streakDays: number;     // 连续打卡天数
+    lastUpdated?: string;   // 最后更新时间
+  };
+}
+
 const Profile = () => {
-  const userInfo = {
-    name: '用户名',
-    avatar: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02LjY2OjY2Njo2NjY2NjY2NjY2NjY2NjY2NjY2NjY2Njb/2wBDAR4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=',  // 使用Base64编码的图片数据
-    daysCount: 365,
-    collectionCount: 12,
-    startDate: '2023/03/25',  // 添加开始记录的日期
+  const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchUserInfo();
+  }, []);
+
+  const fetchUserInfo = async () => {
+    try {
+      setLoading(true);
+      const response = await authService.getCurrentUser();
+      setUserInfo(response.data);
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+      Toast.show({
+        icon: 'fail',
+        content: '获取用户信息失败'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 计算具体的开始日期到现在的天数
-  const calculateDays = (startDate: string) => {
-    const start = new Date(startDate);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const handleLogout = async () => {
+    const result = await Dialog.confirm({
+      content: '确定要退出登录吗？',
+      confirmText: '退出登录',
+      cancelText: '取消'
+    });
+
+    if (result) {
+      try {
+        authService.logout();
+        Toast.show({
+          icon: 'success',
+          content: '退出成功'
+        });
+        navigate('/login', { replace: true });
+      } catch (error) {
+        console.error('退出失败:', error);
+        Toast.show({
+          icon: 'fail',
+          content: '退出失败，请重试'
+        });
+      }
+    }
   };
 
-  const actualDays = calculateDays(userInfo.startDate);
+  const handleSettingClick = (type: string) => {
+    Toast.show({
+      content: `${type}功能开发中`,
+      position: 'bottom'
+    });
+  };
 
-  const menuItems = [
-    {
-      icon: <StarFill style={{ color: '#FFD700' }} />,
-      title: '我的收藏',
-      badge: userInfo.collectionCount,
-      background: 'linear-gradient(135deg, #FFF6E5, #FFE1B3)',
-    },
-    {
-      icon: <HeartOutline style={{ color: '#4E6EF2' }} />,
-      title: '数据统计',
-      background: 'linear-gradient(135deg, #F0F2FF, #E6E9FF)',
-    },
-    {
-      icon: <PrivacyOutline style={{ color: '#00B578' }} />,
-      title: '隐私设置',
-      background: 'linear-gradient(135deg, #E8F8F0, #D5F2E5)',
-    },
-    {
-      icon: <QuestionCircleOutline style={{ color: '#FF9F2E' }} />,
-      title: '帮助与反馈',
-      background: 'linear-gradient(135deg, #FFF3E5, #FFE5CC)',
-    },
-  ];
+  const handleQuickAction = (action: string) => {
+    Toast.show({
+      content: `${action}功能开发中`,
+      position: 'bottom'
+    });
+  };
+
+  // 格式化百分比
+  const formatPercentage = (value: number) => {
+    return `${Math.round(value)}%`;
+  };
 
   return (
     <div className={styles.pageContainer}>
-      <NavBar
-        className={styles.navbar}
-        right={<SetOutline className={styles.settingsIcon} />}
-        back={null}
-      >
+      <NavBar className={styles.navbar} back={null}>
         个人中心
       </NavBar>
 
-      <div className={styles.content}>
-        <div className={styles.userCard}>
-          <div className={styles.userCardBg} />
-          <div className={styles.userCardContent}>
-            <Avatar 
-              src={userInfo.avatar} 
-              className={styles.avatar}
-              fallback={
-                <div className={styles.avatarFallback}>
-                  {userInfo.name.slice(0, 1)}
+      <div className={`${styles.scrollContent} scrollContent`}>
+        {/* 用户信息卡片 */}
+        <Card className={styles.userCard}>
+          <div className={styles.userInfo}>
+            <div className={styles.avatar}>
+              {userInfo?.avatar ? (
+                <img src={userInfo.avatar} alt="头像" />
+              ) : (
+                <div className={styles.defaultAvatar}>
+                  {userInfo?.name?.[0]?.toUpperCase() || userInfo?.email?.[0]?.toUpperCase() || <UserOutline />}
                 </div>
-              }
-            />
-            <div className={styles.userInfo}>
-              <div className={styles.name}>{userInfo.name}</div>
-              <div className={styles.stats}>
-                <span className={styles.daysCount}>{actualDays}</span>
-                <span className={styles.daysLabel}>天</span>
-                <span className={styles.statsText}>已坚持记录</span>
-              </div>
-              <div className={styles.startDate}>
-                开始于 {userInfo.startDate.replace(/\//g, '.')}
-              </div>
+              )}
             </div>
+            <div className={styles.info}>
+              <div className={styles.name}>{userInfo?.name || '未设置昵称'}</div>
+              <div className={styles.email}>{userInfo?.email}</div>
+            </div>
+          </div>
+          <div className={styles.userStats}>
+            <div className={styles.statItem}>
+              <div className={styles.value}>{userInfo?.statistics.totalDays || 0}</div>
+              <div className={styles.label}>记录天数</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.value}>{formatPercentage(userInfo?.statistics.positiveRate || 0)}</div>
+              <div className={styles.label}>积极情绪</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.value}>{userInfo?.statistics.streakDays || 0}</div>
+              <div className={styles.label}>连续打卡</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* 快捷操作 */}
+        <div className={styles.quickActions}>
+          <div className={styles.actionItem} onClick={() => handleQuickAction('编辑资料')}>
+            <div className={styles.icon}><EditSOutline /></div>
+            <div className={styles.label}>编辑资料</div>
+          </div>
+          <div className={styles.actionItem} onClick={() => handleQuickAction('我的相册')}>
+            <div className={styles.icon}><PictureOutline /></div>
+            <div className={styles.label}>我的相册</div>
+          </div>
+          <div className={styles.actionItem} onClick={() => handleQuickAction('情绪记录')}>
+            <div className={styles.icon}><HeartOutline /></div>
+            <div className={styles.label}>情绪记录</div>
+          </div>
+          <div className={styles.actionItem} onClick={() => handleQuickAction('我的收藏')}>
+            <div className={styles.icon}><StarOutline /></div>
+            <div className={styles.label}>我的收藏</div>
           </div>
         </div>
 
-        <div className={styles.menuGrid}>
-          {menuItems.map((item, index) => (
-            <div 
-              key={index} 
-              className={styles.menuItem}
-              style={{ background: item.background }}
-            >
-              <div className={styles.menuIcon}>
-                {item.icon}
-                {item.badge && (
-                  <Badge 
-                    content={item.badge} 
-                    className={styles.menuBadge}
-                  />
-                )}
-              </div>
-              <div className={styles.menuTitle}>{item.title}</div>
-            </div>
-          ))}
-        </div>
+        {/* 设置选项 */}
+        <Card className={styles.settingsCard}>
+          <div className={styles.settingItem} onClick={() => handleSettingClick('主题')}>
+            <span className={styles.label}>
+              <SetOutline /> 主题设置
+            </span>
+            <span className={styles.value}>
+              {userInfo?.settings?.theme === 'dark' ? '深色' : '浅色'}
+              <RightOutline />
+            </span>
+          </div>
+          <div className={styles.settingItem} onClick={() => handleSettingClick('提醒')}>
+            <span className={styles.label}>
+              <BellOutline /> 提醒设置
+            </span>
+            <span className={styles.value}>
+              {userInfo?.settings?.reminderEnabled ? '已开启' : '已关闭'}
+              <RightOutline />
+            </span>
+          </div>
+          <div className={styles.settingItem} onClick={() => handleSettingClick('语言')}>
+            <span className={styles.label}>
+              <GlobalOutline /> 语言设置
+            </span>
+            <span className={styles.value}>
+              {userInfo?.settings?.language === 'zh-CN' ? '中文' : 'English'}
+              <RightOutline />
+            </span>
+          </div>
+        </Card>
 
-        <div className={styles.achievementCard}>
-          <div className={styles.achievementTitle}>
-            <span>成就徽章</span>
-            <span className={styles.achievementMore}>查看全部</span>
-          </div>
-          <div className={styles.achievementList}>
-            {/* 这里可以添加成就徽章列表 */}
-          </div>
+        {/* 退出按钮 */}
+        <div className={styles.logoutButtonContainer}>
+          <Button
+            block
+            color='danger'
+            size='large'
+            onClick={handleLogout}
+            loading={loading}
+          >
+            退出登录
+          </Button>
         </div>
       </div>
     </div>

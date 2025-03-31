@@ -1,114 +1,120 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, App } from 'antd';
+import { useState } from 'react';
+import { Form, Input, Button, Toast } from 'antd-mobile';
+import { EyeInvisibleOutline, EyeOutline, AddOutline } from 'antd-mobile-icons';
+import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/api';
+import styles from '../styles/auth.module.less';
 
-export const Register: React.FC = () => {
+const Register = () => {
   const [loading, setLoading] = useState(false);
+  const [visible, setVisible] = useState(false);
   const navigate = useNavigate();
-  const { message } = App.useApp();
 
-  const onFinish = async (values: { email: string; password: string; name: string }) => {
+  const handleRegister = async (values: { email: string; password: string; name: string }) => {
     try {
       setLoading(true);
       await authService.register({
         username: values.email,
-        password: values.password,
-        email: values.email
+        email: values.email,
+        password: values.password
       });
-      
-      message.success('注册成功，请登录');
-      navigate('/login');
+      Toast.show({
+        icon: 'success',
+        content: '注册成功'
+      });
+      navigate('/login', { replace: true });
     } catch (error: any) {
-      console.error('注册错误:', error);
-      message.error(error.response?.data?.error || '注册失败，请稍后重试');
+      Toast.show({
+        icon: 'fail',
+        content: error.response?.data?.error || '注册失败'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            创建新账户
-          </h2>
+    <div className={styles.authContainer}>
+      <div className={styles.authCard}>
+        <div className={styles.header}>
+          <div className={styles.logo}>
+            <AddOutline />
+          </div>
+          <h1 className={styles.title}>创建账号</h1>
+          <p className={styles.subtitle}>开始您的心情记录之旅</p>
         </div>
+
         <Form
-          name="register"
-          onFinish={onFinish}
-          autoComplete="off"
-          layout="vertical"
+          className={styles.form}
+          onFinish={handleRegister}
+          footer={
+            <Button
+              block
+              type="submit"
+              color="primary"
+              loading={loading}
+              loadingText="注册中..."
+            >
+              注册
+            </Button>
+          }
         >
           <Form.Item
-            label="邮箱"
+            name="name"
+            label="昵称"
+            rules={[
+              { required: true, message: '请输入昵称' },
+              { min: 2, message: '昵称至少2个字符' }
+            ]}
+          >
+            <Input
+              placeholder="请输入昵称"
+              clearable
+            />
+          </Form.Item>
+
+          <Form.Item
             name="email"
+            label="邮箱"
             rules={[
               { required: true, message: '请输入邮箱' },
               { type: 'email', message: '请输入有效的邮箱地址' }
             ]}
           >
-            <Input size="large" placeholder="请输入邮箱" />
+            <Input
+              placeholder="请输入邮箱"
+              clearable
+            />
           </Form.Item>
 
           <Form.Item
-            label="用户名"
-            name="name"
-            rules={[{ required: true, message: '请输入用户名' }]}
-          >
-            <Input size="large" placeholder="请输入用户名" />
-          </Form.Item>
-
-          <Form.Item
-            label="密码"
             name="password"
+            label="密码"
             rules={[
               { required: true, message: '请输入密码' },
-              { min: 6, message: '密码长度不能小于6位' }
+              { min: 6, message: '密码至少6位' }
             ]}
           >
-            <Input.Password size="large" placeholder="请输入密码" />
+            <div className="custom-input-password">
+              <Input
+                placeholder="请输入密码"
+                clearable
+                type={visible ? 'text' : 'password'}
+                className="password-input"
+              />
+              <div className="password-icon" onClick={() => setVisible(!visible)}>
+                {visible ? <EyeOutline /> : <EyeInvisibleOutline />}
+              </div>
+            </div>
           </Form.Item>
-
-          <Form.Item
-            label="确认密码"
-            name="confirmPassword"
-            dependencies={['password']}
-            rules={[
-              { required: true, message: '请确认密码' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('两次输入的密码不一致'));
-                },
-              }),
-            ]}
-          >
-            <Input.Password size="large" placeholder="请确认密码" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              size="large"
-              block
-              loading={loading}
-            >
-              注册
-            </Button>
-          </Form.Item>
-
-          <div className="text-center">
-            <Link to="/login" className="text-blue-600 hover:text-blue-800">
-              已有账户？立即登录
-            </Link>
-          </div>
         </Form>
+
+        <div className={styles.footer}>
+          <Link to="/login">已有账号？立即登录</Link>
+        </div>
       </div>
     </div>
   );
-}; 
+};
+
+export default Register; 

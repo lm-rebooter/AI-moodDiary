@@ -255,6 +255,7 @@ router.get('/me', authenticateToken, async (req: Request & { user?: { userId: nu
   try {
     const userId = req.user!.userId;
 
+    // 获取用户基本信息
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -270,8 +271,70 @@ router.get('/me', authenticateToken, async (req: Request & { user?: { userId: nu
       return res.status(404).json({ error: '用户不存在' });
     }
 
-    res.json(user);
+    // 获取用户统计信息
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 获取用户所有日记记录
+    const diaries = await prisma.diary.findMany({
+      where: { userId },
+      include: {
+        emotions: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // 计算记录天数（按天去重）
+    const uniqueDays = new Set(
+      diaries.map(diary => diary.createdAt.toISOString().split('T')[0])
+    ).size;
+
+    // 计算积极情绪比例
+    const allEmotions = diaries.flatMap(diary => diary.emotions);
+    const positiveEmotions = allEmotions.filter(
+      emotion => emotion.intensity >= 60
+    ).length;
+    const positiveRate = allEmotions.length > 0
+      ? (positiveEmotions / allEmotions.length) * 100
+      : 0;
+
+    // 计算连续打卡天数
+    let streakDays = 0;
+    let currentDate = new Date();
+    let consecutiveDays = 0;
+
+    while (true) {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      const hasDiary = diaries.some(
+        diary => diary.createdAt.toISOString().split('T')[0] === dateStr
+      );
+
+      if (hasDiary) {
+        consecutiveDays++;
+      } else {
+        break;
+      }
+
+      currentDate.setDate(currentDate.getDate() - 1);
+    }
+    streakDays = consecutiveDays;
+
+    // 合并用户信息和统计数据
+    const response = {
+      ...user,
+      statistics: {
+        totalDays: uniqueDays,
+        positiveRate,
+        streakDays,
+        lastUpdated: new Date().toISOString()
+      }
+    };
+
+    res.json(response);
   } catch (error: any) {
+    console.error('获取用户信息失败:', error);
     res.status(500).json({ error: error.message || '获取用户信息失败' });
   }
 });

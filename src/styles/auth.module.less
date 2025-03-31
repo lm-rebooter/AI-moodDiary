@@ -1,0 +1,260 @@
+.authContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%);
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/bg-pattern.svg') center/cover;
+    opacity: 0.05;
+    z-index: -1;
+  }
+}
+
+.authCard {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px 24px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(78, 110, 242, 0.12);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+
+  .logo {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #4E6EF2, #6E89FF);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 16px rgba(78, 110, 242, 0.2);
+
+    svg {
+      width: 36px;
+      height: 36px;
+      color: #fff;
+    }
+  }
+
+  .title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1c1c1e;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: #8e8e93;
+    line-height: 1.5;
+  }
+}
+
+.form {
+  :global {
+    .adm-form-item {
+      margin-bottom: 24px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .adm-form-item-label {
+      padding: 0 0 8px;
+      line-height: 1.5;
+
+      label {
+        font-size: 15px;
+        color: #1c1c1e;
+        font-weight: 600;
+      }
+    }
+
+    .adm-input {
+      --font-size: 16px;
+      --color: #1c1c1e;
+      --placeholder-color: #8e8e93;
+      height: 52px;
+      padding: 0 16px;
+      background: #f5f5f7;
+      border: 1px solid transparent;
+      transition: all 0.3s ease;
+
+      &:hover,
+      &:focus {
+        background: #fff;
+        border-color: #4E6EF2;
+        box-shadow: 0 0 0 3px rgba(78, 110, 242, 0.1);
+      }
+    }
+
+    .custom-input-password {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: #f5f5f7;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      transition: all 0.3s ease;
+
+      &:hover,
+      &:focus-within {
+        background: #fff;
+        border-color: #4E6EF2;
+        box-shadow: 0 0 0 3px rgba(78, 110, 242, 0.1);
+      }
+
+      .password-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        height: 52px;
+        padding: 0 16px;
+        font-size: 16px;
+        color: #1c1c1e;
+
+        &:focus {
+          box-shadow: none;
+        }
+      }
+
+      .password-icon {
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        color: #8e8e93;
+        cursor: pointer;
+        transition: color 0.3s;
+
+        &:hover {
+          color: #4E6EF2;
+        }
+
+        .antd-mobile-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .adm-button {
+      height: 52px;
+      font-size: 17px;
+      font-weight: 600;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4E6EF2, #6E89FF);
+      box-shadow: 0 8px 16px rgba(78, 110, 242, 0.2);
+      transition: all 0.3s ease;
+      margin-top: 8px;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 20px rgba(78, 110, 242, 0.25);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 6px 12px rgba(78, 110, 242, 0.15);
+      }
+    }
+  }
+}
+
+.footer {
+  text-align: center;
+  margin-top: 32px;
+
+  a {
+    color: #4E6EF2;
+    font-size: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+
+    &:hover {
+      color: #6E89FF;
+      background: rgba(78, 110, 242, 0.05);
+    }
+  }
+}
+
+.errorMessage {
+  color: #ff3b30;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .authCard {
+    padding: 24px 20px;
+  }
+
+  .header {
+    margin-bottom: 32px;
+
+    .logo {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+
+      svg {
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    .title {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+    }
+  }
+
+  .form {
+    :global {
+      .adm-form-item {
+        margin-bottom: 20px;
+      }
+
+      .adm-input,
+      .custom-input-password,
+      .adm-button {
+        height: 48px;
+      }
+    }
+  }
+} 

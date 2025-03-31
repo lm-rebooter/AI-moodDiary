@@ -67,6 +67,10 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+  },
+
+  getCurrentUser: async () => {
+    return request.get('/auth/me');
   }
 };
 
