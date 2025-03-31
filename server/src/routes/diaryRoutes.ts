@@ -56,6 +56,188 @@ interface CreateDiaryInput {
   emotion: EmotionInput;
 }
 
+// 获取AI分析
+router.get('/analysis', authenticateToken, async (req: DiaryRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: '未授权' });
+    }
+
+    console.log('获取AI分析 - 用户ID:', userId);
+
+    // 获取最近一周的情绪数据
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 7);
+    
+    const emotions = await prisma.emotion.findMany({
+      where: {
+        diary: {
+          userId: userId
+        },
+        createdAt: { 
+          gte: startDate 
+        }
+      },
+      include: {
+        diary: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // 计算主导情绪
+    const emotionCounts = emotions.reduce((acc, emotion) => {
+      acc[emotion.type] = (acc[emotion.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const dominantEmotion = Object.entries(emotionCounts)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || '平静';
+
+    // 计算情绪分布
+    const totalEmotions = emotions.length;
+    const emotionDistribution = Object.entries(emotionCounts).map(([type, count]) => ({
+      type,
+      percentage: Math.round((count / totalEmotions) * 100)
+    }));
+
+    // 生成每日情绪趋势
+    const weeklyTrend = Array.from({ length: 7 }).map((_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - index));
+      const dayEmotions = emotions.filter(emotion => {
+        const emotionDate = new Date(emotion.createdAt);
+        return emotionDate.getDate() === date.getDate() &&
+               emotionDate.getMonth() === date.getMonth();
+      });
+      
+      return {
+        date: date.toLocaleDateString(),
+        value: dayEmotions.length > 0
+          ? Math.round(dayEmotions.reduce((sum, e) => sum + e.intensity, 0) / dayEmotions.length)
+          : 0
+      };
+    });
+
+    // 生成AI洞察
+    const insights = [
+      {
+        title: '情绪稳定性',
+        description: '您的情绪波动较小，保持着稳定的状态',
+        icon: '📊'
+      },
+      {
+        title: '积极指数',
+        description: '本周积极情绪占比较高，心态乐观',
+        icon: '🌟'
+      },
+      {
+        title: '记录习惯',
+        description: '保持着良好的记录习惯，有助于情绪管理',
+        icon: '📝'
+      },
+      {
+        title: '压力水平',
+        description: '压力水平适中，能够良好应对日常事务',
+        icon: '🎯'
+      }
+    ];
+
+    // 生成个性化建议
+    const suggestions = [
+      {
+        category: '生活建议',
+        content: '建议保持规律的作息时间，每天留出固定时间进行户外活动或运动',
+        icon: '🌞'
+      },
+      {
+        category: '情绪管理',
+        content: '当感到压力时，可以尝试进行15分钟的冥想或深呼吸练习',
+        icon: '🧘‍♀️'
+      },
+      {
+        category: '社交建议',
+        content: '适当增加与朋友的互动和交流，分享生活中的快乐时刻',
+        icon: '👥'
+      }
+    ];
+
+    const response = {
+      emotionSummary: {
+        dominantEmotion: EMOTION_EMOJI_MAP[dominantEmotion] || '😊',
+        emotionDistribution,
+        weeklyTrend
+      },
+      insights,
+      suggestions
+    };
+
+    console.log('AI分析响应:', response);
+    res.json(response);
+  } catch (error: any) {
+    console.error('获取AI分析失败:', error);
+    res.status(500).json({ error: error.message || '获取AI分析失败' });
+  }
+});
+
+// 获取情绪统计
+router.get('/statistics', authenticateToken, async (req: Request & { user?: { userId: number } }, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: '未授权' });
+    }
+
+    const { startDate, endDate } = req.query;
+    console.log('获取情绪统计 - 参数:', { userId, startDate, endDate });
+
+    // 查询条件
+    const where = {
+      diary: {
+        userId: userId
+      },
+      ...(startDate && endDate ? {
+        createdAt: {
+          gte: new Date(startDate as string),
+          lte: new Date(endDate as string)
+        }
+      } : {})
+    };
+
+    // 获取情绪统计
+    const emotions = await prisma.emotion.groupBy({
+      by: ['type'],
+      where,
+      _count: {
+        type: true
+      },
+      _avg: {
+        intensity: true
+      }
+    });
+
+    console.log('情绪统计结果:', emotions);
+
+    // 转换统计结果
+    const statistics = emotions.map(emotion => ({
+      type: emotion.type,
+      emoji: EMOTION_EMOJI_MAP[emotion.type] || emotion.type,
+      count: emotion._count.type,
+      avgIntensity: Math.round(emotion._avg.intensity || 0)
+    }));
+
+    res.json({
+      statistics,
+      total: statistics.reduce((sum, item) => sum + item.count, 0)
+    });
+  } catch (error: any) {
+    console.error('获取情绪统计失败:', error);
+    res.status(500).json({ error: error.message || '获取情绪统计失败' });
+  }
+});
+
 // 获取今日心情
 router.get('/today', authenticateToken, async (req: DiaryRequest, res: Response) => {
   try {
@@ -327,6 +509,51 @@ router.post('/', authenticateToken, async (req: DiaryRequest, res: Response) => 
   }
 });
 
+// 获取用户的所有日记
+router.get('/', authenticateToken, async (req: DiaryRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { page = 1, limit = 10, startDate, endDate } = req.query;
+
+    const where = {
+      userId,
+      ...(startDate && endDate ? {
+        createdAt: {
+          gte: new Date(startDate as string),
+          lte: new Date(endDate as string)
+        }
+      } : {})
+    };
+
+    const diaries = await prisma.diary.findMany({
+      where: {
+        userId: req.user!.userId
+      },
+      include: {
+        emotions: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit)
+    });
+
+    const total = await prisma.diary.count({ where });
+
+    res.json({
+      data: diaries,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || '获取日记失败' });
+  }
+});
+
 // 获取单个日记详情（放在最后，避免路径冲突）
 router.get('/:id', authenticateToken, async (req: DiaryRequest, res: Response) => {
   try {
@@ -371,51 +598,6 @@ router.get('/:id', authenticateToken, async (req: DiaryRequest, res: Response) =
   } catch (error: any) {
     console.error('获取日记详情失败:', error);
     res.status(500).json({ error: error.message || '获取日记详情失败' });
-  }
-});
-
-// 获取用户的所有日记
-router.get('/', authenticateToken, async (req: DiaryRequest, res: Response) => {
-  try {
-    const userId = req.user!.userId;
-    const { page = 1, limit = 10, startDate, endDate } = req.query;
-
-    const where = {
-      userId,
-      ...(startDate && endDate ? {
-        createdAt: {
-          gte: new Date(startDate as string),
-          lte: new Date(endDate as string)
-        }
-      } : {})
-    };
-
-    const diaries = await prisma.diary.findMany({
-      where: {
-        userId: req.user!.userId
-      },
-      include: {
-        emotions: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      skip: (Number(page) - 1) * Number(limit),
-      take: Number(limit)
-    });
-
-    const total = await prisma.diary.count({ where });
-
-    res.json({
-      data: diaries,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || '获取日记失败' });
   }
 });
 

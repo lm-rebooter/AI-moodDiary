@@ -27,8 +27,9 @@ export const diaryApi = {
   create: (data: CreateDiaryDTO) => api.post('/diaries', data),
   update: (id: number, data: UpdateDiaryDTO) => api.put(`/diaries/${id}`, data),
   delete: (id: number) => api.delete(`/diaries/${id}`),
-  getStatistics: () => api.get('/diaries/statistics'),
-  getAIAnalysis: (id: number) => api.get(`/diaries/${id}/analysis`)
+  getStatistics: (params?: { startDate?: string; endDate?: string }) => 
+    api.get('/diaries/statistics', { params }),
+  getAIAnalysis: () => api.get('/diaries/analysis')
 };
 
 export interface LoginParams {

@@ -37,7 +37,7 @@ const MainLayout = () => {
       icon: <MessageOutline />,
     },
     {
-      key: '/statistics',
+      key: '/analysis',//  analysis statistics
       title: '统计',
       icon: <UnorderedListOutline />,
     },
