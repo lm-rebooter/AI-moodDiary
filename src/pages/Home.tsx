@@ -139,40 +139,36 @@ const Home = () => {
 
       <div className={styles.scrollContent}>
         <div className={styles.moodCard}>
-          <div className={styles.moodTitle}>今日心情</div>
-          {currentMood.content ? (
-            <div className={styles.moodContent}>
+          {currentMood ? (
+            <>
               <div className={styles.moodHeader}>
-                <Space align="center">
-                  <span className={styles.emoji}>{currentMood.emotion}</span>
-                  <div className={styles.timeInfo}>
-                    <span className={styles.time}>{currentMood.time}</span>
-                    <span className={styles.type}>{currentMood.type}</span>
-                  </div>
-                </Space>
+                <span className={styles.emoji}>{currentMood.emotion}</span>
+                <div className={styles.timeInfo}>
+                  <span className={styles.time}>今日心情</span>
+                  <span className={styles.type}>{currentMood.time} {currentMood.type}</span>
+                </div>
               </div>
               <div className={styles.moodText}>
                 {currentMood.content}
               </div>
-              {currentMood.weather && (
+              {(currentMood.weather || currentMood.location) && (
                 <div className={styles.moodMeta}>
-                  <span>天气：{currentMood.weather}</span>
-                  {currentMood.location && (
-                    <span>地点：{currentMood.location}</span>
-                  )}
+                  {currentMood.weather && <span>{currentMood.weather}</span>}
+                  {currentMood.location && <span>{currentMood.location}</span>}
                 </div>
               )}
-              {currentMood.tags.length > 0 && (
+              {currentMood.tags?.length > 0 && (
                 <div className={styles.moodTags}>
                   {currentMood.tags.map((tag, index) => (
                     <span key={index} className={styles.tag}>#{tag}</span>
                   ))}
                 </div>
               )}
-            </div>
+            </>
           ) : (
             <div className={styles.moodEmpty}>
-              还没有记录今天的心情哦~
+              <span className={styles.emoji}>😊</span>
+              <span>今天还没有记录心情哦~</span>
             </div>
           )}
         </div>
